@@ -64,19 +64,11 @@ object PartitionedRetrySpecifications {
   //can have maxRetry without callback, but you cannot have callback without maxRetry
   def apply[ResponseMsg](maxRetry: Int = 0,
                          callback: Option[Either[Throwable, ResponseMsg] => Unit] = None, //new FutureAdapterListener[ResponseMsg],
-                         routingConfigs: RoutingConfigs = new RoutingConfigs(retryStrategy != None, duplicatesOk),
-                         retryStrategy: Option[RetryStrategy] = retryStrategy) = {
-    new PartitionedRetrySpecifications[ResponseMsg](maxRetry, callback, routingConfigs, retryStrategy)
+                         retryStrategy: Option[RetryStrategy] = None) = {
+    new PartitionedRetrySpecifications[ResponseMsg](maxRetry, callback, retryStrategy)
   }
 
-  var duplicatesOk: Boolean = false
-  var retryStrategy: Option[RetryStrategy] = None
 
-  def setConfig(config: NetworkClientConfig): Unit = {
-    duplicatesOk = config.duplicatesOk
-    if (retryStrategy != null)
-      retryStrategy = config.retryStrategy
-  }
 }
 
 /**
@@ -86,18 +78,21 @@ object PartitionedRetrySpecifications {
  * @param maxRetry This is the maximum number of retry attempts for the request. If not otherwise specified, the value will be 0.
  * @param callback This is a method to be called with either a Throwable in the case of an error along
  *                 the way or a ResponseMsg representing the result.
- * @param routingConfigs This contains information regarding options for a request routing strategy.
  * @param retryStrategy This is the strategy to apply when we run into timeout situation.
  * @tparam ResponseMsg
  */
 class PartitionedRetrySpecifications[ResponseMsg](maxRetry: Int,
                                          callback: Option[Either[Throwable, ResponseMsg] => Unit],
-                                         val routingConfigs: RoutingConfigs,
-                                         val retryStrategy: Option[RetryStrategy]) extends RetrySpecifications[ResponseMsg](maxRetry, callback) {
-//  Validation checks go here (possibly not needed since they are in the class that this one extends)
-//  if (maxRetry == 0 && callback != None) {
-//    throw new IllegalArgumentException("maxRetry must be greater than 0 for callback options to work")
-//  }
+                                         var retryStrategy: Option[RetryStrategy],
+                                         var duplicatesOk: Boolean = false) extends RetrySpecifications[ResponseMsg](maxRetry, callback) {
+
+  val routingConfigs = new RoutingConfigs(retryStrategy != None, duplicatesOk)
+  def setConfig(config: NetworkClientConfig): Unit = {
+    duplicatesOk = config.duplicatesOk
+    if (retryStrategy != null)
+      retryStrategy = config.retryStrategy
+  }
+
 }
 
 /**

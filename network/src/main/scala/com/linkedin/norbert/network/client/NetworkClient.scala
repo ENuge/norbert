@@ -24,6 +24,7 @@ import cluster._
 import network.common._
 import netty.NettyNetworkClient
 
+
 object NetworkClientConfig {
   var defaultIteratorTimeout = NetworkDefaults.DEFAULT_ITERATOR_TIMEOUT;
 }
@@ -84,7 +85,6 @@ object NetworkClient {
 }
 
 
-//TODO: add new function definition, and its implementation
 //TODO: mark all the old functions deprecated and reroute them to the new function definition
 /**
  * The network client interface for interacting with nodes in a cluster.
@@ -202,6 +202,25 @@ trait NetworkClient extends BaseNetworkClient {
       })
 
     doSendRequest(Request(request, node, is, os, if (maxRetry == 0) Some(callback) else Some(retryCallback[RequestMsg, ResponseMsg](callback, maxRetry, capability, persistentCapability)_)))
+  }
+
+  /**
+   * TODO: comment new function
+   */
+  def sendRequest[RequestMsg, ResponseMsg](requestSpec: RequestSpecification[RequestMsg], nodeSpec: NodeSpec, retrySpec: RetrySpecifications[ResponseMsg])
+  (implicit is: InputSerializer[RequestMsg, ResponseMsg], os:OutputSerializer[RequestMsg, ResponseMsg]) = doIfConnected {
+    if (requestSpec.message == null) throw new NullPointerException
+    val callback = retrySpec.callback.getOrElse(throw new Exception("No callback and no default callback"));
+
+    val loadBalancerReady = loadBalancer.getOrElse(throw new ClusterDisconnectedException("Client has no node information"))
+
+    val node = loadBalancerReady.fold(ex => throw ex,
+      lb => {
+        val node: Option[Node] = lb.nextNode(nodeSpec.capability, nodeSpec.persistentCapability)
+        node.getOrElse(throw new NoNodesAvailableException("No node available that can handle the request: %s".format(requestSpec.message)))
+      })
+
+    doSendRequest(Request(requestSpec.message, node, is, os, if (retrySpec.maxRetry == 0) Some(callback) else Some(retryCallback[RequestMsg, ResponseMsg](callback, retrySpec.maxRetry, nodeSpec.capability, nodeSpec.persistentCapability) _)))
   }
 
 
