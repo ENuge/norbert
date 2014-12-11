@@ -45,6 +45,7 @@ public interface BaseNetworkClient {
    * @throws InvalidNodeException thrown if the node specified is not currently available
    * @throws ClusterDisconnectedException thrown if the cluster is not connected when the method is called
    */
+  @Deprecated
   <RequestMsg, ResponseMsg> Future<ResponseMsg> sendRequestToNode(RequestMsg request, Node node, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidNodeException, ClusterDisconnectedException;
 
   /**
@@ -57,6 +58,7 @@ public interface BaseNetworkClient {
    * as they are received
    * @throws ClusterDisconnectedException thrown if the cluster is not connected when the method is called
    */
+  @Deprecated
   <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> broadcastMessage(RequestMsg request, Serializer<RequestMsg, ResponseMsg> serializer) throws ClusterDisconnectedException;
 
   /**

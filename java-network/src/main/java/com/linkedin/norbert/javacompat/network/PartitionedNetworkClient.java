@@ -40,6 +40,7 @@ public interface PartitionedNetworkClient<PartitionedId> extends BaseNetworkClie
    * to send the request to
    * @throws ClusterDisconnectedException thrown if the <code>PartitionedNetworkClient</code> is not connected to the cluster
    */
+  @Deprecated
   <RequestMsg, ResponseMsg> Future<ResponseMsg> sendRequest(PartitionedId id, RequestMsg request, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException;
 
   /**
@@ -57,6 +58,7 @@ public interface PartitionedNetworkClient<PartitionedId> extends BaseNetworkClie
    * to send the request to
    * @throws ClusterDisconnectedException thrown if the <code>PartitionedNetworkClient</code> is not connected to the cluster
    */
+  @Deprecated
   <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequest(Set<PartitionedId> ids, RequestMsg request, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException;
 
   /**
@@ -76,6 +78,7 @@ public interface PartitionedNetworkClient<PartitionedId> extends BaseNetworkClie
    * @throws ClusterDisconnectedException thrown if the <code>PartitionedNetworkClient</code> is not connected to the cluster
    * @throws Exception any exception thrown by <code>ScatterGatherHandler</code> will be passed through to the client
    */
+  @Deprecated
   <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequest(Set<PartitionedId> ids,
                                                                       RequestBuilder<PartitionedId, RequestMsg> requestBuilder,
                                                                       Serializer<RequestMsg, ResponseMsg> serializer) throws Exception;
@@ -98,6 +101,7 @@ public interface PartitionedNetworkClient<PartitionedId> extends BaseNetworkClie
    * @throws ClusterDisconnectedException thrown if the <code>PartitionedNetworkClient</code> is not connected to the cluster
    * @throws Exception any exception thrown by <code>ScatterGatherHandler</code> will be passed through to the client
    */
+  @Deprecated
   <RequestMsg, ResponseMsg, T> T sendRequest(Set<PartitionedId> ids,
                                              RequestBuilder<PartitionedId, RequestMsg> requestBuilder,
                                              ScatterGatherHandler<RequestMsg, ResponseMsg, T, PartitionedId> scatterGather,
@@ -115,6 +119,7 @@ public interface PartitionedNetworkClient<PartitionedId> extends BaseNetworkClie
    * to send the request to
    * @throws ClusterDisconnectedException thrown if the <code>PartitionedNetworkClient</code> is not connected to the cluster
    */
+  @Deprecated
   <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequestToOneReplica(PartitionedId id, RequestBuilder<Integer, RequestMsg> requestBuilder, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException;
 
   /**
@@ -129,6 +134,7 @@ public interface PartitionedNetworkClient<PartitionedId> extends BaseNetworkClie
    * to send the request to
    * @throws ClusterDisconnectedException thrown if the <code>PartitionedNetworkClient</code> is not connected to the cluster
    */
+  @Deprecated
   <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequestToReplicas(PartitionedId id, RequestMsg requestMsg,
                                                                                    Serializer<RequestMsg, ResponseMsg> serializer)
       throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException;
@@ -145,6 +151,7 @@ public interface PartitionedNetworkClient<PartitionedId> extends BaseNetworkClie
    * to send the request to
    * @throws ClusterDisconnectedException thrown if the <code>PartitionedNetworkClient</code> is not connected to the cluster
    */
+  @Deprecated
   <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequestToPartitions(PartitionedId id, Set<Integer> partitions, RequestBuilder<Integer, RequestMsg> requestBuilder, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException;
   
   /**
@@ -159,6 +166,7 @@ public interface PartitionedNetworkClient<PartitionedId> extends BaseNetworkClie
    * to send the request to
    * @throws ClusterDisconnectedException thrown if the <code>PartitionedNetworkClient</code> is not connected to the cluster
    */
+  @Deprecated
   <RequestMsg, ResponseMsg> ResponseIterator<ResponseMsg> sendRequestToOneReplica(PartitionedId id, RequestMsg request, Serializer<RequestMsg, ResponseMsg> serializer) throws InvalidClusterException, NoNodesAvailableException, ClusterDisconnectedException;
 
 }

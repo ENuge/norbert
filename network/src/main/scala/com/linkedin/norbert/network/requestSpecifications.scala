@@ -28,7 +28,6 @@ class PartitionedRequestSpec[RequestMsg, PartitionedId](val message: Option[Requ
     //error if both message and requestBuilder are none
     throw new IllegalArgumentException("need to specify either message or requestbuilder")
   }
-
 }
 
 
