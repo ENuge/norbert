@@ -16,27 +16,29 @@
 package com.linkedin.norbert.network
 
 import java.util.UUID
-import com.linkedin.norbert.cluster.{Node, ClusterException}
-import scala.collection.mutable.Map
-import com.linkedin.norbert.logging.Logging
-import com.linkedin.norbert.network.common.CachedNetworkStatistics
-import com.linkedin.norbert.norbertutils.SystemClockComponent
-import com.linkedin.norbert.network.netty.ClientChannelHandler
 
-object Request {
-  def apply[RequestMsg, ResponseMsg](message: RequestMsg, node: Node,
-                                     inputSerializer: InputSerializer[RequestMsg, ResponseMsg], outputSerializer: OutputSerializer[RequestMsg, ResponseMsg],
-                                     callback: Option[Either[Throwable, ResponseMsg] => Unit], retryAttempt: Int = 0): Request[RequestMsg, ResponseMsg] = {
-    new Request(message, node, inputSerializer, outputSerializer, callback, retryAttempt)
+import com.linkedin.norbert.cluster.{ClusterException, Node}
+import com.linkedin.norbert.network.common.CachedNetworkStatistics
+
+import scala.collection.mutable.Map
+
+object BaseRequest {
+  def apply[RequestMsg](message: RequestMsg, node: Node,
+                        inputSerializer: InputSerializer[RequestMsg, Unit],
+                        outputSerializer: OutputSerializer[RequestMsg, Unit]): BaseRequest[RequestMsg] = {
+    new BaseRequest(message, node, inputSerializer, outputSerializer)
   }
 }
 
-class Request[RequestMsg, ResponseMsg](val message: RequestMsg, val node: Node,
-                                       val inputSerializer: InputSerializer[RequestMsg, ResponseMsg], val outputSerializer: OutputSerializer[RequestMsg, ResponseMsg],
-                                       val callback: Option[Either[Throwable, ResponseMsg] => Unit], val retryAttempt: Int = 0) {
+class BaseRequest[RequestMsg](val message: RequestMsg, val node: Node,
+                              val inputSerializer: InputSerializer[RequestMsg, _],
+                              val outputSerializer: OutputSerializer[RequestMsg, _]) {
   val id = UUID.randomUUID
   val timestamp = System.currentTimeMillis
   val headers : Map[String, String] = Map.empty[String, String]
+  //currently there is an assumption in ClientChannelHandler that only the Request class and derivatives of it can expect responses
+  //if you extend baseRequest (and not request) with something that expects a response make sure to change that
+  val expectsResponse = false
 
   def name: String = {
     inputSerializer.requestName
@@ -46,16 +48,41 @@ class Request[RequestMsg, ResponseMsg](val message: RequestMsg, val node: Node,
 
   def addHeader(key: String, value: String) = headers += (key -> value)
 
-  def onFailure(exception: Throwable) {
-    if(!callback.isEmpty) callback.get(Left(exception))
-  }
-
   def startNettyTiming(stats : CachedNetworkStatistics[Node, UUID]) = {
     stats.beginNetty(node, id, 0)
   }
 
+  override def toString: String = {
+    "[Request: %s, %s]".format(message, node)
+  }
+
+  def onFailure(exception: Throwable) {
+    // Nothing to do here!
+  }
+
+}
+
+object Request {
+  def apply[RequestMsg, ResponseMsg](message: RequestMsg, node: Node,
+                                     inputSerializer: InputSerializer[RequestMsg, ResponseMsg], outputSerializer: OutputSerializer[RequestMsg, ResponseMsg],
+                                     callback: Option[Either[Throwable, ResponseMsg] => Unit], retryAttempt: Int = 0): Request[RequestMsg, ResponseMsg] = {
+    new Request(message, node, inputSerializer, outputSerializer, callback, retryAttempt)
+  }
+}
+
+class Request[RequestMsg, ResponseMsg](override val message: RequestMsg, override val node: Node,
+                                       override val inputSerializer: InputSerializer[RequestMsg, ResponseMsg], override val outputSerializer: OutputSerializer[RequestMsg, ResponseMsg],
+                                       val callback: Option[Either[Throwable, ResponseMsg] => Unit], val retryAttempt: Int = 0)
+  extends BaseRequest[RequestMsg](message, node, inputSerializer, outputSerializer){
+
+  override val expectsResponse = !callback.isEmpty
+
+  override def onFailure(exception: Throwable) {
+    if(expectsResponse) callback.get(Left(exception))
+  }
+
   def onSuccess(bytes: Array[Byte]) {
-    if(!callback.isEmpty) callback.get(try {
+    if(expectsResponse) callback.get(try {
       Right(inputSerializer.responseFromBytes(bytes))
     } catch {
       case ex: Exception => Left(new ClusterException("Exception while deserializing response", ex))
