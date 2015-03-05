@@ -35,7 +35,7 @@ package object javacompat {
     collection.JavaConversions.asScalaSet(set).foldLeft(collection.immutable.Set.empty[Int]) { _ + _.intValue }
   }
 
-  implicit def scalaIntSetToJavaIntegerSet(set: util.Set[Int]): java.util.Set[java.lang.Integer] = {
+  implicit def scalaIntSetToJavaIntegerSet(set: Set[Int]): java.util.Set[java.lang.Integer] = {
     val result = new java.util.HashSet[java.lang.Integer](set.size)
     set.foreach (result add _)
     result
@@ -49,27 +49,27 @@ package object javacompat {
     if (node == null) null
     else {
       val iter = node.getPartitionIds.iterator
-      var partitionIds = util.Set.empty[Int]
+      var partitionIds = Set.empty[Int]
       while(iter.hasNext) {
         partitionIds += iter.next.intValue
       }
 
       SNode(node.getId, node.getUrl, node.isAvailable, partitionIds,
-			if(node.getCapability == null) None else Some(node.getCapability.longValue),
-			if(node.getPersistentCapability == null) None else Some(node.getPersistentCapability.longValue),
-      node.getAltPort)
+        if(node.getCapability == null) None else Some(node.getCapability.longValue),
+        if(node.getPersistentCapability == null) None else Some(node.getPersistentCapability.longValue),
+        Some(node.getAltPort.intValue))
     }
   }
 
-  implicit def convertSNodeSet(set: util.Set[SNode]): java.util.Set[JNode] = {
+  implicit def convertSNodeSet(set: Set[SNode]): java.util.Set[JNode] = {
     var result = new java.util.HashSet[JNode](set.size)
     set.foreach(elem => result.add(scalaNodeToJavaNode(elem)))
     result
   }
 
-  implicit def convertJNodeSet(set: java.util.Set[JNode]): util.Set[SNode] = {
+  implicit def convertJNodeSet(set: java.util.Set[JNode]): Set[SNode] = {
     val iter = set.iterator
-    var result = util.Set.empty[SNode]
+    var result = Set.empty[SNode]
     while(iter.hasNext)
       result += javaNodeToScalaNode(iter.next)
     result
