@@ -90,13 +90,13 @@ Number 1 is most commonly the case that an administrator has specified the node 
 
 ### Defining the cluster
 
-The easiest way to define a cluster is to use the `NorbertClusterClientMain` command line program which can be found in the examples sub-directory.  At the prompt you can type
+To set up a cluster use the `addNode` and `removeNode` methods on the `Cluster` trait. These methods create Znodes in ZooKeeper which store the node's hostname/port and partition mapping metadata. Customer tools can be written using these methods in your own code.
+
+In the examples module there is a command line program for defining a cluster, `NorbertClusterClientMain`. At the prompt you can type:
 
 * nodes - lists all the nodes in the cluster
 * join nodeId hostname port partitionId1 partitionId2 ... - adds a new node to the cluster with the given id, host, port and partitions ids
 * leave nodeId - removes the node with the given id from the cluster
-
-Under the covers, the `NorbertNetworkClientMain` command line program simply uses the `addNode` and `removeNode` methods on the `Cluster` trait.  These methods create ZNodes in ZooKeeper which store the Node's hostname/port and partition mapping metadata. Custom tools can be written using those methods in your own code.
 
 ### Interacting with the cluster
 

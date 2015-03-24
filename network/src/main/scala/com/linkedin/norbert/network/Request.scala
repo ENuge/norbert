@@ -13,10 +13,10 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package com.linkedin.norbert.network
+package com.linkedin.norbert
+package network
 
 import java.util.UUID
-
 import com.linkedin.norbert.cluster.{ClusterException, Node}
 import com.linkedin.norbert.network.common.CachedNetworkStatistics
 
@@ -44,9 +44,18 @@ class BaseRequest[RequestMsg](val message: RequestMsg, val node: Node,
     inputSerializer.requestName
   }
 
+  // serializer
   def requestBytes: Array[Byte] = outputSerializer.requestToBytes(message)
 
   def addHeader(key: String, value: String) = headers += (key -> value)
+
+  def onFailure(exception: Throwable) {
+    if(!callback.isEmpty) callback.get(Left(exception))
+  }
+
+  def endNettyTiming(stats: CachedNetworkStatistics[Node, UUID]) = {
+    stats.endNetty(node, id)
+  }
 
   def startNettyTiming(stats : CachedNetworkStatistics[Node, UUID]) = {
     stats.beginNetty(node, id, 0)
@@ -79,18 +88,22 @@ class Request[RequestMsg, ResponseMsg](override val message: RequestMsg, overrid
                                        val callback: Option[Either[Throwable, ResponseMsg] => Unit], val retryAttempt: Int = 0)
   extends BaseRequest[RequestMsg](message, node, inputSerializer, outputSerializer){
 
-  override val expectsResponse = !callback.isEmpty
-
   override def onFailure(exception: Throwable) {
-    if(expectsResponse) callback.get(Left(exception))
+    callback match {
+      case Some(fn) => fn(Left(exception))
+      case None => ()
+    }
   }
 
   override def onSuccess(bytes: Array[Byte]) {
-    if(expectsResponse) callback.get(try {
-      Right(inputSerializer.responseFromBytes(bytes))
-    } catch {
-      case ex: Exception => Left(new ClusterException("Exception while deserializing response", ex))
-    })
+    callback match {
+      case Some(fn) => fn(try {
+        Right(inputSerializer.responseFromBytes(bytes))
+        } catch {
+          case ex: Exception => Left(new ClusterException("Exception while deserializing response", ex))
+      })
+      case None => ()
+    }
   }
 
   override def toString: String = {
