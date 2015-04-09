@@ -110,6 +110,19 @@ object NorbertNetworkClientMain {
           }
         }
 
+      case "altPing" =>
+        if (args.length < 1) {
+          println("Invalid syntax: ping nodeId")
+        } else {
+          val node = cc.nodeWithId(args.head.toInt)
+          node match {
+            case Some(n) =>
+              nc.sendAltMessageToNode(Ping(System.currentTimeMillis), n)
+
+            case None => println("No node with id: %d".format(args.head.toInt))
+          }
+        }
+
       case "exit" => System.exit(0)
 
       case "quit" => System.exit(0)
