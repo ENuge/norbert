@@ -19,12 +19,6 @@ import java.util.UUID
 
 import com.linkedin.norbert.cluster.{ClusterException, Node}
 import com.linkedin.norbert.network.common.CachedNetworkStatistics
-<<<<<<< HEAD
-=======
-
-import scala.collection.mutable.Map
->>>>>>> b1707d99fade40acce9066149627da2496e14b2c
-
 import scala.collection.mutable.Map
 
 object BaseRequest {
