@@ -81,15 +81,21 @@ class Request[RequestMsg, ResponseMsg](override val message: RequestMsg, overrid
   override val expectsResponse = !callback.isEmpty
 
   override def onFailure(exception: Throwable) {
-    if(expectsResponse) callback.get(Left(exception))
+    callback match {
+      case Some(fn) => fn(Left(exception))
+      case None => ()
+    }
   }
 
   override def onSuccess(bytes: Array[Byte]) {
-    if(expectsResponse) callback.get(try {
-      Right(inputSerializer.responseFromBytes(bytes))
-    } catch {
-      case ex: Exception => Left(new ClusterException("Exception while deserializing response", ex))
-    })
+    callback match {
+      case Some(fn) => fn(try {
+        Right(inputSerializer.responseFromBytes(bytes))
+        } catch {
+          case ex: Exception => Left(new ClusterException("Exception while deserializing response", ex))
+      })
+      case None => ()
+    }
   }
 
   override def toString: String = {
