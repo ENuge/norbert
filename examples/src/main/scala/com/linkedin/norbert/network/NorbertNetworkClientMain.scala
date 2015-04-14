@@ -74,11 +74,15 @@ object NorbertNetworkClientMain {
             cc.addNode(nodeId.toInt, url)
             println("Joined Norbert cluster")
 
-          case nodeId :: url :: partitions =>
-            cc.addNode(nodeId.toInt, url, Set() ++ partitions.map(_.toInt))
+          case nodeId :: url :: altPort :: Nil =>
+            cc.addNode(nodeId.toInt, url, altPort = Some(altPort.toInt))
             println("Joined Norbert cluster")
 
-          case _ => println("Error: Invalid syntax: join nodeId url partition1 partition2...")
+          case nodeId :: url :: altPort :: partitions :: Nil =>
+            cc.addNode(nodeId.toInt, url, Set() ++ partitions.map(_.toInt), Some(altPort.toInt))
+            println("Joined Norbert cluster")
+
+          case _ => println("Error: Invalid syntax: join nodeId url altPort partition1 partition2...")
         }
         println("Joined Norbert cluster")
 
